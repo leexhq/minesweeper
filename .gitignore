@@ -1,0 +1,15 @@
+# Operating System files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Backup & temporary files
+*- Copy.html
+* - Copy.html
+*.bak
+*.tmp
+*.log
+
+# Screenshots & tests
+screenshot_*.png
+test_*.html
