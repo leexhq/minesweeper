@@ -1,0 +1,2157 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>精致扫雷 | Minesweeper Modern & Classic</title>
+  
+  <!-- 预加载高品质字体 -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&family=VT323&display=swap" rel="stylesheet">
+
+  <style>
+    /* =========================================================================
+       主题变量体系 (支持现代、Win98复古、清新明亮、深邃暗黑4种配色风格)
+       ========================================================================= */
+    :root {
+      /* 默认：现代雅致 (Modern Slate) */
+      --page-bg: radial-gradient(circle at 50% -10%, #1e1b4b 0%, #0f172a 60%, #020617 100%);
+      --card-bg: rgba(30, 41, 59, 0.72);
+      --card-border: rgba(255, 255, 255, 0.12);
+      --card-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.06);
+      --card-backdrop: blur(18px);
+
+      --dashboard-bg: rgba(15, 23, 42, 0.85);
+      --dashboard-border: rgba(255, 255, 255, 0.08);
+
+      --board-container-bg: rgba(15, 23, 42, 0.65);
+      --board-container-border: rgba(255, 255, 255, 0.06);
+
+      --cell-unrevealed-bg: linear-gradient(145deg, #3b4263, #2a2f48);
+      --cell-unrevealed-border-t: rgba(255, 255, 255, 0.22);
+      --cell-unrevealed-border-b: rgba(0, 0, 0, 0.45);
+      --cell-unrevealed-shadow: 0 3px 6px rgba(0, 0, 0, 0.25);
+      --cell-unrevealed-hover: linear-gradient(145deg, #464f76, #323856);
+      --cell-pressed-bg: #1c2032;
+
+      --cell-revealed-bg: #111827;
+      --cell-revealed-border: rgba(255, 255, 255, 0.08);
+      --cell-revealed-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.6);
+
+      --led-bg: #090d16;
+      --led-border: rgba(255, 255, 255, 0.1);
+      --led-mine-color: #38bdf8;
+      --led-mine-glow: rgba(56, 189, 248, 0.45);
+      --led-time-color: #fbbf24;
+      --led-time-glow: rgba(251, 191, 36, 0.45);
+
+      --btn-bg: rgba(255, 255, 255, 0.07);
+      --btn-border: rgba(255, 255, 255, 0.12);
+      --btn-hover-bg: rgba(255, 255, 255, 0.14);
+      --btn-active-bg: #6366f1;
+      --btn-active-glow: 0 0 16px rgba(99, 102, 241, 0.5);
+
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+
+      /* 数字配色 - 现代饱和 */
+      --num-1: #38bdf8; /* 天蓝 */
+      --num-2: #4ade80; /* 嫩绿 */
+      --num-3: #f87171; /* 鲜红 */
+      --num-4: #c084fc; /* 紫晶 */
+      --num-5: #fb923c; /* 亮橙 */
+      --num-6: #2dd4bf; /* 青绿 */
+      --num-7: #f472b6; /* 靓粉 */
+      --num-8: #cbd5e1; /* 银白 */
+
+      --danger-bg: #dc2626;
+      --radius-board: 14px;
+      --radius-cell: 6px;
+    }
+
+    /* 主题 2：经典 Win98 复古 (Retro 98) */
+    [data-theme="retro"] {
+      --page-bg: #008080; /* Win98 经典蓝绿桌面 */
+      --card-bg: #c0c0c0;
+      --card-border: #ffffff;
+      --card-shadow: 2px 2px 0px #000, -2px -2px 0px #fff;
+      --card-backdrop: none;
+
+      --dashboard-bg: #c0c0c0;
+      --dashboard-border: #808080;
+
+      --board-container-bg: #bdbdbd;
+      --board-container-border: #808080;
+
+      --cell-unrevealed-bg: #c0c0c0;
+      --cell-unrevealed-border-t: #ffffff;
+      --cell-unrevealed-border-b: #808080;
+      --cell-unrevealed-shadow: none;
+      --cell-unrevealed-hover: #d4d4d4;
+      --cell-pressed-bg: #a6a6a6;
+
+      --cell-revealed-bg: #c0c0c0;
+      --cell-revealed-border: #808080;
+      --cell-revealed-shadow: inset 1px 1px 0px #808080;
+
+      --led-bg: #000000;
+      --led-border: #808080;
+      --led-mine-color: #ff0000;
+      --led-mine-glow: none;
+      --led-time-color: #ff0000;
+      --led-time-glow: none;
+
+      --btn-bg: #c0c0c0;
+      --btn-border: #ffffff;
+      --btn-hover-bg: #d0d0d0;
+      --btn-active-bg: #808080;
+      --btn-active-glow: none;
+
+      --text-main: #000000;
+      --text-muted: #404040;
+
+      /* Win98 经典原版数字颜色 */
+      --num-1: #0000ff; /* 纯蓝 */
+      --num-2: #008000; /* 纯绿 */
+      --num-3: #ff0000; /* 纯红 */
+      --num-4: #000080; /* 深蓝 */
+      --num-5: #800000; /* 棕红 */
+      --num-6: #008080; /* 墨绿 */
+      --num-7: #000000; /* 纯黑 */
+      --num-8: #808080; /* 纯灰 */
+
+      --danger-bg: #ff0000;
+      --radius-board: 0px;
+      --radius-cell: 0px;
+    }
+
+    /* 主题 3：清新明亮 (Clean Light) */
+    [data-theme="light"] {
+      --page-bg: linear-gradient(135deg, #e0e7ff 0%, #f1f5f9 50%, #f8fafc 100%);
+      --card-bg: rgba(255, 255, 255, 0.88);
+      --card-border: rgba(0, 0, 0, 0.08);
+      --card-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.12), 0 0 0 1px rgba(0, 0, 0, 0.04);
+      --card-backdrop: blur(16px);
+
+      --dashboard-bg: #f1f5f9;
+      --dashboard-border: #cbd5e1;
+
+      --board-container-bg: #e2e8f0;
+      --board-container-border: #cbd5e1;
+
+      --cell-unrevealed-bg: linear-gradient(145deg, #ffffff, #e2e8f0);
+      --cell-unrevealed-border-t: #ffffff;
+      --cell-unrevealed-border-b: #94a3b8;
+      --cell-unrevealed-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+      --cell-unrevealed-hover: #ffffff;
+      --cell-pressed-bg: #cbd5e1;
+
+      --cell-revealed-bg: #f8fafc;
+      --cell-revealed-border: #cbd5e1;
+      --cell-revealed-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.06);
+
+      --led-bg: #1e293b;
+      --led-border: #334155;
+      --led-mine-color: #38bdf8;
+      --led-mine-glow: rgba(56, 189, 248, 0.3);
+      --led-time-color: #fbbf24;
+      --led-time-glow: rgba(251, 191, 36, 0.3);
+
+      --btn-bg: #e2e8f0;
+      --btn-border: #cbd5e1;
+      --btn-hover-bg: #cbd5e1;
+      --btn-active-bg: #4f46e5;
+      --btn-active-glow: 0 0 12px rgba(79, 70, 229, 0.35);
+
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+
+      --num-1: #2563eb;
+      --num-2: #16a34a;
+      --num-3: #dc2626;
+      --num-4: #7c3aed;
+      --num-5: #ea580c;
+      --num-6: #0891b2;
+      --num-7: #db2777;
+      --num-8: #475569;
+
+      --danger-bg: #ef4444;
+      --radius-board: 14px;
+      --radius-cell: 6px;
+    }
+
+    /* 主题 4：深邃赛博 (Cyber Dark) */
+    [data-theme="cyber"] {
+      --page-bg: radial-gradient(circle at 50% 10%, #16082f 0%, #060214 70%, #000000 100%);
+      --card-bg: rgba(14, 8, 30, 0.85);
+      --card-border: rgba(236, 72, 153, 0.3);
+      --card-shadow: 0 25px 50px rgba(0, 0, 0, 0.8), 0 0 25px rgba(236, 72, 153, 0.15);
+      --card-backdrop: blur(16px);
+
+      --dashboard-bg: rgba(5, 2, 12, 0.9);
+      --dashboard-border: rgba(6, 182, 212, 0.3);
+
+      --board-container-bg: rgba(8, 4, 18, 0.9);
+      --board-container-border: rgba(236, 72, 153, 0.2);
+
+      --cell-unrevealed-bg: linear-gradient(145deg, #271249, #140728);
+      --cell-unrevealed-border-t: rgba(236, 72, 153, 0.4);
+      --cell-unrevealed-border-b: rgba(0, 0, 0, 0.7);
+      --cell-unrevealed-shadow: 0 3px 8px rgba(0, 0, 0, 0.4);
+      --cell-unrevealed-hover: linear-gradient(145deg, #371868, #1b0936);
+      --cell-pressed-bg: #0d041c;
+
+      --cell-revealed-bg: #080313;
+      --cell-revealed-border: rgba(6, 182, 212, 0.18);
+      --cell-revealed-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.8);
+
+      --led-bg: #04010a;
+      --led-border: rgba(6, 182, 212, 0.4);
+      --led-mine-color: #06b6d4;
+      --led-mine-glow: rgba(6, 182, 212, 0.6);
+      --led-time-color: #f43f5e;
+      --led-time-glow: rgba(244, 63, 94, 0.6);
+
+      --btn-bg: rgba(236, 72, 153, 0.12);
+      --btn-border: rgba(236, 72, 153, 0.3);
+      --btn-hover-bg: rgba(236, 72, 153, 0.25);
+      --btn-active-bg: #ec4899;
+      --btn-active-glow: 0 0 18px rgba(236, 72, 153, 0.7);
+
+      --text-main: #fdf2f8;
+      --text-muted: #a78bfa;
+
+      --num-1: #22d3ee;
+      --num-2: #4ade80;
+      --num-3: #f43f5e;
+      --num-4: #e879f9;
+      --num-5: #facc15;
+      --num-6: #2dd4bf;
+      --num-7: #fb7185;
+      --num-8: #cbd5e1;
+
+      --danger-bg: #f43f5e;
+      --radius-board: 14px;
+      --radius-cell: 6px;
+    }
+
+    /* =========================================================================
+       基础与全局布局
+       ========================================================================= */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+      background: var(--page-bg);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-main);
+      padding: 24px 12px;
+      overflow-x: hidden;
+      transition: background 0.3s ease;
+    }
+
+    .game-wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+      max-width: 100%;
+      width: fit-content;
+    }
+
+    /* 顶部标题与主题切换 */
+    .top-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      padding: 0 4px;
+    }
+
+    .game-title {
+      font-size: 1.9rem;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .game-title .icon {
+      font-size: 1.7rem;
+      animation: floatIcon 3s ease-in-out infinite;
+    }
+
+    @keyframes floatIcon {
+      0%, 100% { transform: translateY(0px) rotate(0deg); }
+      50% { transform: translateY(-4px) rotate(6deg); }
+    }
+
+    .theme-select-wrapper {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+
+    .theme-select {
+      background: var(--btn-bg);
+      border: 1px solid var(--btn-border);
+      color: var(--text-main);
+      padding: 6px 12px;
+      border-radius: 10px;
+      font-family: inherit;
+      font-weight: 600;
+      font-size: 0.85rem;
+      cursor: pointer;
+      outline: none;
+      transition: all 0.2s;
+    }
+
+    .theme-select:hover {
+      background: var(--btn-hover-bg);
+    }
+
+    /* 难度控制栏 */
+    .difficulty-bar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      background: var(--card-bg);
+      backdrop-filter: var(--card-backdrop);
+      -webkit-backdrop-filter: var(--card-backdrop);
+      padding: 6px 8px;
+      border-radius: 16px;
+      border: 1px solid var(--card-border);
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+    }
+
+    .diff-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-family: inherit;
+      font-weight: 700;
+      font-size: 0.88rem;
+      padding: 8px 16px;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .diff-btn:hover {
+      color: var(--text-main);
+      background: var(--btn-hover-bg);
+    }
+
+    .diff-btn.active {
+      background: var(--btn-active-bg);
+      color: #ffffff;
+      box-shadow: var(--btn-active-glow);
+    }
+
+    /* 游戏主卡片 */
+    .game-card {
+      background: var(--card-bg);
+      backdrop-filter: var(--card-backdrop);
+      -webkit-backdrop-filter: var(--card-backdrop);
+      border: 1px solid var(--card-border);
+      border-radius: 22px;
+      padding: 20px;
+      box-shadow: var(--card-shadow);
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      max-width: 96vw;
+      transition: box-shadow 0.3s, transform 0.2s;
+    }
+
+    .game-card.shake {
+      animation: shakeCard 0.45s cubic-bezier(.36,.07,.19,.97) both;
+    }
+
+    @keyframes shakeCard {
+      10%, 90% { transform: translate3d(-3px, 0, 0); }
+      20%, 80% { transform: translate3d(4px, 0, 0); }
+      30%, 50%, 70% { transform: translate3d(-6px, 0, 0); }
+      40%, 60% { transform: translate3d(6px, 0, 0); }
+    }
+
+    /* 仪表盘 (地雷数、笑脸重置、计时器) */
+    .status-dashboard {
+      background: var(--dashboard-bg);
+      border: 1px solid var(--dashboard-border);
+      border-radius: 16px;
+      padding: 10px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.2);
+    }
+
+    .counter-badge {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 3px;
+      min-width: 80px;
+    }
+
+    .counter-badge.right {
+      align-items: flex-end;
+    }
+
+    .counter-label {
+      font-size: 0.68rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: var(--text-muted);
+    }
+
+    /* LED 液晶数显框 */
+    .counter-display {
+      background: var(--led-bg);
+      border: 1px solid var(--led-border);
+      border-radius: 8px;
+      padding: 4px 10px;
+      font-family: 'Fira Code', 'VT323', monospace;
+      font-size: 1.6rem;
+      font-weight: 700;
+      line-height: 1;
+      letter-spacing: 2px;
+      box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.8);
+    }
+
+    .counter-display.mines {
+      color: var(--led-mine-color);
+      text-shadow: 0 0 10px var(--led-mine-glow);
+    }
+
+    .counter-display.timer {
+      color: var(--led-time-color);
+      text-shadow: 0 0 10px var(--led-time-glow);
+    }
+
+    /* 笑脸表情重置按钮 */
+    .face-btn {
+      width: 52px;
+      height: 52px;
+      border-radius: 14px;
+      background: var(--cell-unrevealed-bg);
+      border-top: 2px solid var(--cell-unrevealed-border-t);
+      border-left: 2px solid var(--cell-unrevealed-border-t);
+      border-right: 2px solid var(--cell-unrevealed-border-b);
+      border-bottom: 2px solid var(--cell-unrevealed-border-b);
+      font-size: 1.7rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+      transition: all 0.12s ease;
+      outline: none;
+    }
+
+    .face-btn:hover {
+      transform: translateY(-2px);
+      filter: brightness(1.08);
+      box-shadow: 0 6px 14px rgba(0, 0, 0, 0.4);
+    }
+
+    .face-btn:active, .face-btn.pressed {
+      transform: translateY(1px) scale(0.96);
+      background: var(--cell-pressed-bg);
+      border-top: 2px solid var(--cell-unrevealed-border-b);
+      border-left: 2px solid var(--cell-unrevealed-border-b);
+      border-right: 2px solid var(--cell-unrevealed-border-t);
+      border-bottom: 2px solid var(--cell-unrevealed-border-t);
+      box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.4);
+    }
+
+    /* 工具快捷条 (音效、手机标旗、智能连开、规则) */
+    .toolbar-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-top: -4px;
+      padding: 0 4px;
+    }
+
+    .tool-group-left, .tool-group-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .icon-btn {
+      background: var(--btn-bg);
+      border: 1px solid var(--btn-border);
+      color: var(--text-muted);
+      height: 36px;
+      padding: 0 12px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 0.85rem;
+      font-weight: 600;
+      transition: all 0.18s;
+      outline: none;
+    }
+
+    .icon-btn:hover {
+      color: var(--text-main);
+      background: var(--btn-hover-bg);
+      transform: translateY(-1px);
+    }
+
+    .icon-btn.active {
+      color: #ffffff;
+      background: var(--btn-active-bg);
+      border-color: transparent;
+      box-shadow: var(--btn-active-glow);
+    }
+
+    /* 棋盘外框容器 */
+    .board-container {
+      max-width: 100%;
+      overflow: auto;
+      padding: 10px;
+      border-radius: var(--radius-board);
+      background: var(--board-container-bg);
+      border: 1px solid var(--board-container-border);
+      box-shadow: inset 0 3px 10px rgba(0, 0, 0, 0.35);
+      position: relative;
+    }
+
+    .board-container::-webkit-scrollbar {
+      width: 7px;
+      height: 7px;
+    }
+    .board-container::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 4px;
+    }
+    .board-container::-webkit-scrollbar-thumb:hover {
+      background: rgba(255, 255, 255, 0.35);
+    }
+
+    /* 棋盘网格 */
+    .board {
+      display: grid;
+      gap: 4px;
+      margin: 0 auto;
+      width: fit-content;
+    }
+
+    /* 单个单元格 */
+    .cell {
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Fira Code', monospace;
+      font-weight: 700;
+      border-radius: var(--radius-cell);
+      cursor: pointer;
+      user-select: none;
+      position: relative;
+      transition: background 0.1s, transform 0.08s, filter 0.1s;
+    }
+
+    /* 未翻开状态 (突出浮雕感) */
+    .cell.unrevealed {
+      background: var(--cell-unrevealed-bg);
+      border-top: 2px solid var(--cell-unrevealed-border-t);
+      border-left: 2px solid var(--cell-unrevealed-border-t);
+      border-right: 2px solid var(--cell-unrevealed-border-b);
+      border-bottom: 2px solid var(--cell-unrevealed-border-b);
+      box-shadow: var(--cell-unrevealed-shadow);
+    }
+
+    .cell.unrevealed:hover {
+      background: var(--cell-unrevealed-hover);
+      filter: brightness(1.08);
+    }
+
+    .cell.unrevealed:active, .cell.pressed {
+      transform: scale(0.95);
+      background: var(--cell-pressed-bg);
+      border-top: 2px solid var(--cell-unrevealed-border-b);
+      border-left: 2px solid var(--cell-unrevealed-border-b);
+      border-right: 2px solid var(--cell-unrevealed-border-t);
+      border-bottom: 2px solid var(--cell-unrevealed-border-t);
+    }
+
+    /* 翻开状态 (内嵌下凹质感，空白大片区域清晰明显) */
+    .cell.revealed {
+      background: var(--cell-revealed-bg);
+      border: 1px solid var(--cell-revealed-border);
+      box-shadow: var(--cell-revealed-shadow);
+      cursor: default;
+      animation: cellPop 0.18s cubic-bezier(0.34, 1.56, 0.64, 1) backwards;
+    }
+
+    @keyframes cellPop {
+      0% {
+        transform: scale(0.65);
+        opacity: 0.4;
+      }
+      100% {
+        transform: scale(1);
+        opacity: 1;
+      }
+    }
+
+    /* 空白区域微弱点缀 (方便在暗色主题下玩家清晰看清连成大片的空白格子) */
+    .cell.revealed.empty-blank {
+      background: var(--cell-revealed-bg);
+    }
+    .cell.revealed.empty-blank::after {
+      content: '';
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.08);
+      pointer-events: none;
+    }
+    [data-theme="retro"] .cell.revealed.empty-blank::after,
+    [data-theme="light"] .cell.revealed.empty-blank::after {
+      display: none;
+    }
+
+    /* 双击/连开高亮反馈 */
+    .cell.chord-highlight {
+      filter: brightness(1.4) !important;
+      transform: scale(0.94);
+    }
+
+    /* 数字色彩 */
+    .cell[data-num="1"] { color: var(--num-1); }
+    .cell[data-num="2"] { color: var(--num-2); }
+    .cell[data-num="3"] { color: var(--num-3); }
+    .cell[data-num="4"] { color: var(--num-4); }
+    .cell[data-num="5"] { color: var(--num-5); }
+    .cell[data-num="6"] { color: var(--num-6); }
+    .cell[data-num="7"] { color: var(--num-7); }
+    .cell[data-num="8"] { color: var(--num-8); }
+
+    /* 插旗 */
+    .cell.flagged {
+      color: #f43f5e;
+      animation: flagPlace 0.22s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    @keyframes flagPlace {
+      0% { transform: scale(0.4) rotate(-15deg); }
+      70% { transform: scale(1.18) rotate(6deg); }
+      100% { transform: scale(1) rotate(0deg); }
+    }
+
+    /* 问号 */
+    .cell.question {
+      color: #fbbf24;
+      font-weight: 800;
+    }
+
+    /* 踩雷爆炸 */
+    .cell.exploded {
+      background: var(--danger-bg) !important;
+      color: #ffffff;
+      box-shadow: 0 0 20px rgba(239, 68, 68, 0.8);
+      animation: explodeAnim 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      z-index: 5;
+    }
+
+    @keyframes explodeAnim {
+      0% { transform: scale(0.6); }
+      50% { transform: scale(1.3); }
+      100% { transform: scale(1); }
+    }
+
+    /* 普通地雷展示 (游戏结束翻开) */
+    .cell.mine-revealed {
+      background: rgba(220, 38, 38, 0.2);
+      border-color: rgba(220, 38, 38, 0.4);
+    }
+
+    /* 错误插旗 */
+    .cell.wrong-flag {
+      background: rgba(239, 68, 68, 0.15);
+      color: #f87171;
+      text-decoration: line-through;
+    }
+
+    /* 底部统计栏与状态 */
+    .footer-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      padding: 0 4px;
+      gap: 12px;
+    }
+
+    .best-score {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .best-score strong {
+      color: var(--led-time-color);
+      font-family: 'Fira Code', monospace;
+      font-weight: 700;
+    }
+
+    .footer-hint {
+      font-size: 0.8rem;
+      opacity: 0.85;
+    }
+
+    /* =========================================================================
+       弹窗系统 (自定义设置、玩法说明、通关胜利卡片)
+       ========================================================================= */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease;
+      padding: 20px;
+    }
+
+    .modal-overlay.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .modal-card {
+      background: var(--card-bg);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid var(--card-border);
+      border-radius: 20px;
+      width: 100%;
+      max-width: 420px;
+      padding: 26px;
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.6);
+      transform: scale(0.92) translateY(10px);
+      transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      color: var(--text-main);
+    }
+
+    .modal-overlay.active .modal-card {
+      transform: scale(1) translateY(0);
+    }
+
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 18px;
+    }
+
+    .modal-title {
+      font-size: 1.3rem;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .modal-close-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-size: 1.2rem;
+      cursor: pointer;
+      padding: 4px;
+      line-height: 1;
+    }
+
+    .modal-close-btn:hover {
+      color: var(--text-main);
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-bottom: 14px;
+    }
+
+    .form-group label {
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .form-group input {
+      background: rgba(0, 0, 0, 0.25);
+      border: 1px solid var(--btn-border);
+      border-radius: 10px;
+      color: var(--text-main);
+      font-family: 'Fira Code', monospace;
+      font-size: 1rem;
+      padding: 10px 14px;
+      outline: none;
+      transition: all 0.2s;
+    }
+
+    .form-group input:focus {
+      border-color: var(--btn-active-bg);
+      box-shadow: 0 0 10px rgba(99, 102, 241, 0.35);
+    }
+
+    .modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+      margin-top: 22px;
+    }
+
+    .btn {
+      padding: 10px 20px;
+      border-radius: 12px;
+      font-family: inherit;
+      font-weight: 700;
+      font-size: 0.92rem;
+      cursor: pointer;
+      border: none;
+      transition: all 0.2s;
+    }
+
+    .btn-secondary {
+      background: var(--btn-bg);
+      color: var(--text-muted);
+      border: 1px solid var(--btn-border);
+    }
+    .btn-secondary:hover {
+      background: var(--btn-hover-bg);
+      color: var(--text-main);
+    }
+
+    .btn-primary {
+      background: var(--btn-active-bg);
+      color: #ffffff;
+      box-shadow: var(--btn-active-glow);
+    }
+    .btn-primary:hover {
+      filter: brightness(1.15);
+      transform: translateY(-1px);
+    }
+
+    /* 胜利结算弹窗特制样式 */
+    .win-badge {
+      text-align: center;
+      margin-bottom: 16px;
+    }
+    .win-badge .trophy-icon {
+      font-size: 3.5rem;
+      animation: trophyBounce 1s infinite alternate cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    @keyframes trophyBounce {
+      from { transform: translateY(0) scale(1); }
+      to { transform: translateY(-8px) scale(1.08); }
+    }
+    .win-title {
+      font-size: 1.6rem;
+      font-weight: 800;
+      margin-top: 6px;
+      background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .win-stats-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin: 16px 0;
+    }
+    .win-stat-box {
+      background: rgba(0, 0, 0, 0.25);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 12px;
+      text-align: center;
+    }
+    .win-stat-label {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      font-weight: 700;
+    }
+    .win-stat-val {
+      font-family: 'Fira Code', monospace;
+      font-size: 1.4rem;
+      font-weight: 800;
+      color: var(--led-time-color);
+      margin-top: 4px;
+    }
+
+    /* 撒花 Canvas */
+    #confettiCanvas {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 2000;
+    }
+
+    /* 移动端与响应式调整 */
+    @media (max-width: 600px) {
+      body { padding: 12px 6px; }
+      .game-title { font-size: 1.5rem; }
+      .game-card { padding: 14px 10px; border-radius: 16px; }
+      .status-dashboard { padding: 8px 12px; border-radius: 12px; }
+      .counter-display { font-size: 1.35rem; padding: 4px 8px; }
+      .face-btn { width: 44px; height: 44px; font-size: 1.45rem; }
+      .diff-btn { padding: 6px 12px; font-size: 0.8rem; }
+      .footer-hint { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 胜利全屏撒花 -->
+  <canvas id="confettiCanvas"></canvas>
+
+  <div class="game-wrapper">
+    <!-- 顶部状态与主题 -->
+    <div class="top-bar">
+      <div class="game-title">
+        <span class="icon">💣</span>
+        <span>精致扫雷</span>
+      </div>
+      <div class="theme-select-wrapper">
+        <label for="themeSelect">🎨 主题:</label>
+        <select id="themeSelect" class="theme-select">
+          <option value="modern" selected>✨ 现代雅致</option>
+          <option value="retro">🕹️ 经典复古 (Win98)</option>
+          <option value="light">🍃 清新明亮</option>
+          <option value="cyber">🌌 深邃霓虹</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- 难度选项条 -->
+    <div class="difficulty-bar">
+      <button class="diff-btn active" data-difficulty="easy">初级 (9×9)</button>
+      <button class="diff-btn" data-difficulty="medium">中级 (16×16)</button>
+      <button class="diff-btn" data-difficulty="hard">高级 (30×16)</button>
+      <button class="diff-btn" data-difficulty="custom">自定义 ⚙️</button>
+    </div>
+
+    <!-- 游戏主卡片 -->
+    <div class="game-card" id="gameCard">
+      <!-- 仪表盘 -->
+      <div class="status-dashboard">
+        <!-- 地雷计数器 -->
+        <div class="counter-badge">
+          <span class="counter-label">Mines</span>
+          <div class="counter-display mines" id="mineCounter">010</div>
+        </div>
+
+        <!-- 重置笑脸 -->
+        <button class="face-btn" id="faceBtn" title="重新开始 (或按快捷键 R)">😊</button>
+
+        <!-- 计时器 -->
+        <div class="counter-badge right">
+          <span class="counter-label">Time</span>
+          <div class="counter-display timer" id="timerDisplay">000</div>
+        </div>
+      </div>
+
+      <!-- 工具栏 -->
+      <div class="toolbar-bar">
+        <div class="tool-group-left">
+          <button class="icon-btn active" id="soundToggleBtn" title="音效开关 (S)">
+            <span id="soundIcon">🔊</span>
+            <span id="soundText">音效</span>
+          </button>
+          <button class="icon-btn" id="flagModeToggleBtn" title="手机端标旗模式 (点击即标旗)">
+            <span>🚩</span>
+            <span id="flagModeText">插旗模式</span>
+          </button>
+        </div>
+        <div class="tool-group-right">
+          <button class="icon-btn" id="helpBtn" title="玩法与技巧说明">
+            <span>❓</span>
+            <span>说明</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- 棋盘容器 -->
+      <div class="board-container" id="boardContainer">
+        <div class="board" id="board"></div>
+      </div>
+
+      <!-- 底部统计与提示 -->
+      <div class="footer-bar">
+        <div class="best-score">
+          <span>🏆 最佳纪录:</span>
+          <strong id="bestTimeDisplay">--</strong>
+        </div>
+        <div class="footer-hint">
+          <span>💡 提示: 点击翻开，右键插旗，双击数字快速展开周边</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 自定义难度弹窗 -->
+  <div class="modal-overlay" id="customModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-title">⚙️ 自定义难度配置</div>
+        <button class="modal-close-btn" id="closeCustomXBtn">&times;</button>
+      </div>
+      <div class="form-group">
+        <label for="customWidth">
+          <span>宽度 (列数):</span>
+          <span id="widthValTip" style="color:var(--text-muted)">9 - 40</span>
+        </label>
+        <input type="number" id="customWidth" min="9" max="40" value="9">
+      </div>
+      <div class="form-group">
+        <label for="customHeight">
+          <span>高度 (行数):</span>
+          <span id="heightValTip" style="color:var(--text-muted)">9 - 30</span>
+        </label>
+        <input type="number" id="customHeight" min="9" max="30" value="9">
+      </div>
+      <div class="form-group">
+        <label for="customMines">
+          <span>地雷总数:</span>
+          <span id="minesValTip" style="color:var(--text-muted)">1 - 300</span>
+        </label>
+        <input type="number" id="customMines" min="1" max="300" value="10">
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" id="cancelCustomBtn">取消</button>
+        <button class="btn btn-primary" id="applyCustomBtn">立即开局</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 玩法规则弹窗 -->
+  <div class="modal-overlay" id="helpModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-title">📖 经典扫雷玩法与技巧</div>
+        <button class="modal-close-btn" id="closeHelpXBtn">&times;</button>
+      </div>
+      <div style="font-size: 0.9rem; line-height: 1.65; color: var(--text-main); display: flex; flex-direction: column; gap: 10px;">
+        <p><strong>🎯 胜利条件：</strong> 找出并翻开所有非地雷格子，或将所有地雷正确标上红旗 🚩。</p>
+        <p><strong>🌟 经典智能特性：</strong></p>
+        <ul style="padding-left: 20px; color: var(--text-muted);">
+          <li><strong style="color:var(--text-main);">首击大片空白：</strong> 第一击保证绝对安全，并智能展开一大片连续的空白与数字边缘，体验跟经典与官方扫雷完全一致！</li>
+          <li><strong style="color:var(--text-main);">空白全连锁：</strong> 点击任何周围无雷的格子，都会顺次自动扩散开一整片开阔的安全区域。</li>
+          <li><strong style="color:var(--text-main);">快速连击 (Chord)：</strong> 当一个数字周围标记的旗帜数量等于该数字时，直接双击或点击该数字，即可瞬间快速翻开周围剩余未标记的格子！</li>
+        </ul>
+        <p><strong>⌨️ 常用快捷键：</strong></p>
+        <ul style="padding-left: 20px; color: var(--text-muted);">
+          <li><strong style="color:var(--text-main);">R：</strong> 重新开局 / 刷新</li>
+          <li><strong style="color:var(--text-main);">F / 空格：</strong> 切换快速插旗模式</li>
+          <li><strong style="color:var(--text-main);">1 / 2 / 3：</strong> 快速切换 初级 / 中级 / 高级</li>
+        </ul>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-primary" id="closeHelpBtn">我知道了</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 胜利通关结算弹窗 -->
+  <div class="modal-overlay" id="winModal">
+    <div class="modal-card" style="text-align: center;">
+      <div class="win-badge">
+        <div class="trophy-icon">🏆</div>
+        <div class="win-title">恭喜通关！大获全胜！</div>
+      </div>
+      <p style="color: var(--text-muted); font-size: 0.9rem;">你成功排除了所有潜在地雷，表现堪称完美！</p>
+      
+      <div class="win-stats-grid">
+        <div class="win-stat-box">
+          <div class="win-stat-label">本次用时</div>
+          <div class="win-stat-val" id="winTimeVal">0s</div>
+        </div>
+        <div class="win-stat-box">
+          <div class="win-stat-label">历史最佳</div>
+          <div class="win-stat-val" id="winBestVal">0s</div>
+        </div>
+      </div>
+
+      <div class="modal-actions" style="justify-content: center;">
+        <button class="btn btn-primary" id="winPlayAgainBtn" style="width: 100%;">再来一局 🔥</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /* =========================================================================
+       1. 高品质音效合成器 (纯 Web Audio API，无需下载任何外部音频文件)
+       ========================================================================= */
+    class AudioEngine {
+      constructor() {
+        this.ctx = null;
+        this.enabled = true;
+      }
+
+      init() {
+        try {
+          if (!this.ctx) {
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            if (AudioContext) {
+              this.ctx = new AudioContext();
+            }
+          }
+          if (this.ctx && this.ctx.state === 'suspended') {
+            this.ctx.resume();
+          }
+        } catch (e) {
+          console.warn('Web Audio initialization error:', e);
+        }
+      }
+
+      /* 翻开格子音效 (柔和短促的轻敲音，多层连锁时音调递增) */
+      playReveal(depth = 0) {
+        if (!this.enabled) return;
+        this.init();
+        if (!this.ctx) return;
+
+        try {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          const baseFreq = 340 + Math.min(depth * 38, 450);
+
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(baseFreq, this.ctx.currentTime);
+          osc.frequency.exponentialRampToValueAtTime(baseFreq * 1.35, this.ctx.currentTime + 0.055);
+
+          gain.gain.setValueAtTime(0.08, this.ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.055);
+
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start();
+          osc.stop(this.ctx.currentTime + 0.055);
+        } catch (e) {}
+      }
+
+      /* 插旗音效 (清脆利落的小木销声) */
+      playFlag() {
+        if (!this.enabled) return;
+        this.init();
+        if (!this.ctx) return;
+
+        try {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(580, this.ctx.currentTime);
+          osc.frequency.exponentialRampToValueAtTime(950, this.ctx.currentTime + 0.05);
+
+          gain.gain.setValueAtTime(0.12, this.ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.05);
+
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start();
+          osc.stop(this.ctx.currentTime + 0.05);
+        } catch (e) {}
+      }
+
+      /* 取消插旗音效 */
+      playUnflag() {
+        if (!this.enabled) return;
+        this.init();
+        if (!this.ctx) return;
+
+        try {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(750, this.ctx.currentTime);
+          osc.frequency.exponentialRampToValueAtTime(450, this.ctx.currentTime + 0.04);
+
+          gain.gain.setValueAtTime(0.08, this.ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.04);
+
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start();
+          osc.stop(this.ctx.currentTime + 0.04);
+        } catch (e) {}
+      }
+
+      /* 踩雷爆炸音效 (深沉低频震颤与杂波衰减) */
+      playExplode() {
+        if (!this.enabled) return;
+        this.init();
+        if (!this.ctx) return;
+
+        try {
+          const bufferSize = Math.floor(this.ctx.sampleRate * 0.45);
+          const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+          const data = buffer.getChannelData(0);
+          for (let i = 0; i < bufferSize; i++) {
+            data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (bufferSize * 0.28));
+          }
+
+          const noise = this.ctx.createBufferSource();
+          noise.buffer = buffer;
+
+          const filter = this.ctx.createBiquadFilter();
+          filter.type = 'lowpass';
+          filter.frequency.setValueAtTime(650, this.ctx.currentTime);
+          filter.frequency.exponentialRampToValueAtTime(40, this.ctx.currentTime + 0.45);
+
+          const gain = this.ctx.createGain();
+          gain.gain.setValueAtTime(0.55, this.ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.45);
+
+          noise.connect(filter);
+          filter.connect(gain);
+          gain.connect(this.ctx.destination);
+
+          noise.start();
+        } catch (e) {}
+      }
+
+      /* 胜利胜利号角琶音 (悦耳和弦) */
+      playWin() {
+        if (!this.enabled) return;
+        this.init();
+        if (!this.ctx) return;
+
+        try {
+          const chords = [523.25, 659.25, 783.99, 1046.50, 1318.51]; // C5, E5, G5, C6, E6
+          chords.forEach((freq, idx) => {
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            const startTime = this.ctx.currentTime + idx * 0.09;
+
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(freq, startTime);
+
+            gain.gain.setValueAtTime(0.14, startTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.35);
+
+            osc.connect(gain);
+            gain.connect(this.ctx.destination);
+            osc.start(startTime);
+            osc.stop(startTime + 0.35);
+          });
+        } catch (e) {}
+      }
+    }
+
+    /* =========================================================================
+       2. 通关庆祝彩带粒子 (Canvas 独立轻量渲染)
+       ========================================================================= */
+    class ConfettiManager {
+      constructor(canvas) {
+        this.canvas = canvas;
+        this.ctx = canvas.getContext('2d');
+        this.particles = [];
+        this.animId = null;
+        this.resize();
+        window.addEventListener('resize', () => this.resize());
+      }
+
+      resize() {
+        this.canvas.width = window.innerWidth;
+        this.canvas.height = window.innerHeight;
+      }
+
+      fire() {
+        this.particles = [];
+        const colors = ['#6366f1', '#38bdf8', '#4ade80', '#fbbf24', '#f43f5e', '#a855f7', '#ec4899'];
+        for (let i = 0; i < 180; i++) {
+          this.particles.push({
+            x: this.canvas.width * (0.2 + Math.random() * 0.6),
+            y: this.canvas.height * 0.45,
+            vx: (Math.random() - 0.5) * 22,
+            vy: (Math.random() - 0.75) * 22,
+            size: Math.random() * 8 + 5,
+            color: colors[Math.floor(Math.random() * colors.length)],
+            rot: Math.random() * 360,
+            rotSpeed: (Math.random() - 0.5) * 12,
+            gravity: 0.38,
+            opacity: 1
+          });
+        }
+        if (!this.animId) this.loop();
+      }
+
+      loop() {
+        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        let active = 0;
+
+        for (const p of this.particles) {
+          p.x += p.vx;
+          p.y += p.vy;
+          p.vy += p.gravity;
+          p.vx *= 0.98;
+          p.rot += p.rotSpeed;
+          p.opacity -= 0.006;
+
+          if (p.opacity > 0 && p.y < this.canvas.height + 60) {
+            active++;
+            this.ctx.save();
+            this.ctx.translate(p.x, p.y);
+            this.ctx.rotate((p.rot * Math.PI) / 180);
+            this.ctx.globalAlpha = Math.max(0, p.opacity);
+            this.ctx.fillStyle = p.color;
+            this.ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size * 0.55);
+            this.ctx.restore();
+          }
+        }
+
+        if (active > 0) {
+          this.animId = requestAnimationFrame(() => this.loop());
+        } else {
+          this.animId = null;
+          this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        }
+      }
+    }
+
+    /* =========================================================================
+       3. 核心扫雷逻辑引擎
+       ========================================================================= */
+    const PRESET_CONFIGS = {
+      easy: { cols: 9, rows: 9, mines: 10, name: '初级' },
+      medium: { cols: 16, rows: 16, mines: 40, name: '中级' },
+      hard: { cols: 30, rows: 16, mines: 99, name: '高级' }
+    };
+
+    class Minesweeper {
+      constructor() {
+        this.audio = new AudioEngine();
+        this.confetti = new ConfettiManager(document.getElementById('confettiCanvas'));
+
+        // 基础参数
+        this.difficulty = 'easy';
+        this.cols = 9;
+        this.rows = 9;
+        this.mines = 10;
+
+        // 状态模型
+        this.grid = []; // [r][c] -> { r, c, mine, count, revealed, state: 0(无)/1(旗)/2(问号) }
+        this.firstClick = true;
+        this.isGameOver = false;
+        this.isGameWon = false;
+        this.timer = 0;
+        this.timerInterval = null;
+        this.flagCount = 0;
+        this.revealedCount = 0;
+
+        // 交互开关
+        this.mobileFlagMode = false;
+
+        // 获取 DOM 引用
+        this.boardEl = document.getElementById('board');
+        this.boardContainerEl = document.getElementById('boardContainer');
+        this.mineCounterEl = document.getElementById('mineCounter');
+        this.timerDisplayEl = document.getElementById('timerDisplay');
+        this.faceBtnEl = document.getElementById('faceBtn');
+        this.bestTimeEl = document.getElementById('bestTimeDisplay');
+        this.gameCardEl = document.getElementById('gameCard');
+
+        this.initThemes();
+        this.initDOMListeners();
+        this.setDifficulty('easy');
+      }
+
+      /* 主题系统初始化 */
+      initThemes() {
+        const themeSelect = document.getElementById('themeSelect');
+        const savedTheme = localStorage.getItem('minesweeper_theme') || 'modern';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+        themeSelect.value = savedTheme;
+
+        themeSelect.addEventListener('change', (e) => {
+          const chosen = e.target.value;
+          document.documentElement.setAttribute('data-theme', chosen);
+          localStorage.setItem('minesweeper_theme', chosen);
+          this.recalculateCellSizes();
+        });
+      }
+
+      /* 统一绑定全局事件 */
+      initDOMListeners() {
+        // 重置笑脸按钮
+        this.faceBtnEl.addEventListener('click', () => {
+          this.resetGame();
+        });
+
+        // 难度切换选择
+        document.querySelectorAll('.diff-btn').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            const diff = e.currentTarget.dataset.difficulty;
+            if (diff === 'custom') {
+              document.getElementById('customModal').classList.add('active');
+            } else {
+              document.querySelectorAll('.diff-btn').forEach(b => b.classList.remove('active'));
+              e.currentTarget.classList.add('active');
+              this.setDifficulty(diff);
+            }
+          });
+        });
+
+        // 自定义难度弹窗逻辑
+        const customModal = document.getElementById('customModal');
+        document.getElementById('cancelCustomBtn').addEventListener('click', () => {
+          customModal.classList.remove('active');
+        });
+        document.getElementById('closeCustomXBtn').addEventListener('click', () => {
+          customModal.classList.remove('active');
+        });
+
+        document.getElementById('applyCustomBtn').addEventListener('click', () => {
+          const w = Math.max(9, Math.min(40, parseInt(document.getElementById('customWidth').value) || 9));
+          const h = Math.max(9, Math.min(30, parseInt(document.getElementById('customHeight').value) || 9));
+          const maxMines = Math.floor(w * h * 0.82);
+          const m = Math.max(1, Math.min(maxMines, parseInt(document.getElementById('customMines').value) || 10));
+
+          customModal.classList.remove('active');
+          document.querySelectorAll('.diff-btn').forEach(b => b.classList.remove('active'));
+          document.querySelector('[data-difficulty="custom"]').classList.add('active');
+
+          this.difficulty = 'custom';
+          this.cols = w;
+          this.rows = h;
+          this.mines = m;
+          this.resetGame();
+        });
+
+        // 音效切换
+        const soundBtn = document.getElementById('soundToggleBtn');
+        const soundIcon = document.getElementById('soundIcon');
+        const soundText = document.getElementById('soundText');
+        const savedSound = localStorage.getItem('minesweeper_sound');
+        if (savedSound !== null) {
+          this.audio.enabled = savedSound === 'true';
+          soundBtn.classList.toggle('active', this.audio.enabled);
+          soundIcon.textContent = this.audio.enabled ? '🔊' : '🔇';
+          soundText.textContent = this.audio.enabled ? '音效' : '静音';
+        }
+
+        soundBtn.addEventListener('click', () => {
+          this.audio.enabled = !this.audio.enabled;
+          localStorage.setItem('minesweeper_sound', this.audio.enabled);
+          soundBtn.classList.toggle('active', this.audio.enabled);
+          soundIcon.textContent = this.audio.enabled ? '🔊' : '🔇';
+          soundText.textContent = this.audio.enabled ? '音效' : '静音';
+        });
+
+        // 移动端插旗模式切换
+        const flagModeBtn = document.getElementById('flagModeToggleBtn');
+        flagModeBtn.addEventListener('click', () => {
+          this.mobileFlagMode = !this.mobileFlagMode;
+          flagModeBtn.classList.toggle('active', this.mobileFlagMode);
+        });
+
+        // 帮助弹窗
+        const helpModal = document.getElementById('helpModal');
+        document.getElementById('helpBtn').addEventListener('click', () => helpModal.classList.add('active'));
+        document.getElementById('closeHelpBtn').addEventListener('click', () => helpModal.classList.remove('active'));
+        document.getElementById('closeHelpXBtn').addEventListener('click', () => helpModal.classList.remove('active'));
+
+        // 胜利再来一局
+        document.getElementById('winPlayAgainBtn').addEventListener('click', () => {
+          document.getElementById('winModal').classList.remove('active');
+          this.resetGame();
+        });
+
+        // 窗口大小变动重算单元格尺寸
+        window.addEventListener('resize', () => {
+          this.recalculateCellSizes();
+        });
+
+        // 键盘快捷键支持 (R:重开, F:插旗模式, 1/2/3:难度)
+        window.addEventListener('keydown', (e) => {
+          if (e.target.tagName === 'INPUT') return;
+          if (e.key === 'r' || e.key === 'R') {
+            this.resetGame();
+          } else if (e.key === 'f' || e.key === 'F' || e.code === 'Space') {
+            flagModeBtn.click();
+          } else if (e.key === '1') {
+            document.querySelector('[data-difficulty="easy"]')?.click();
+          } else if (e.key === '2') {
+            document.querySelector('[data-difficulty="medium"]')?.click();
+          } else if (e.key === '3') {
+            document.querySelector('[data-difficulty="hard"]')?.click();
+          } else if (e.key === 'Escape') {
+            document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('active'));
+          }
+        });
+
+        // 阻止棋盘右键菜单
+        this.boardEl.addEventListener('contextmenu', (e) => e.preventDefault());
+      }
+
+      /* 设定难度 */
+      setDifficulty(diff) {
+        this.difficulty = diff;
+        if (PRESET_CONFIGS[diff]) {
+          this.cols = PRESET_CONFIGS[diff].cols;
+          this.rows = PRESET_CONFIGS[diff].rows;
+          this.mines = PRESET_CONFIGS[diff].mines;
+        }
+        this.resetGame();
+      }
+
+      /* 重置游戏状态并重绘棋盘 */
+      resetGame() {
+        this.stopTimer();
+        this.timer = 0;
+        this.firstClick = true;
+        this.isGameOver = false;
+        this.isGameWon = false;
+        this.flagCount = 0;
+        this.revealedCount = 0;
+
+        this.faceBtnEl.textContent = '😊';
+        this.gameCardEl.classList.remove('shake');
+        this.updateDashboard();
+        this.updateBestScoreDisplay();
+
+        // 初始化数据模型
+        this.grid = [];
+        for (let r = 0; r < this.rows; r++) {
+          const row = [];
+          for (let c = 0; c < this.cols; c++) {
+            row.push({
+              r, c,
+              mine: false,
+              count: 0,
+              revealed: false,
+              state: 0 // 0:正常, 1:插旗🚩, 2:问号❓
+            });
+          }
+          this.grid.push(row);
+        }
+
+        this.renderBoard();
+      }
+
+      /* 启动计时器 */
+      startTimer() {
+        if (this.timerInterval) return;
+        this.timer = 0;
+        this.timerDisplayEl.textContent = '000';
+        this.timerInterval = setInterval(() => {
+          this.timer++;
+          this.timerDisplayEl.textContent = String(Math.min(999, this.timer)).padStart(3, '0');
+        }, 1000);
+      }
+
+      /* 停止计时器 */
+      stopTimer() {
+        if (this.timerInterval) {
+          clearInterval(this.timerInterval);
+          this.timerInterval = null;
+        }
+      }
+
+      /* 刷新仪表盘数字 (剩余雷数与计时) */
+      updateDashboard() {
+        const remaining = this.mines - this.flagCount;
+        const sign = remaining < 0 ? '-' : '';
+        const absVal = Math.abs(remaining);
+        this.mineCounterEl.textContent = sign + String(Math.min(999, absVal)).padStart(3, '0');
+        this.timerDisplayEl.textContent = String(Math.min(999, this.timer)).padStart(3, '0');
+      }
+
+      /* 计算并调整单元格合适像素大小 (自适应屏幕宽度与大棋盘) */
+      getCellSize() {
+        const containerWidth = Math.min(window.innerWidth - 36, 1100);
+        const maxCellByWidth = Math.floor((containerWidth - 20 - (this.cols - 1) * 4) / this.cols);
+
+        if (this.cols <= 9) {
+          return Math.min(42, Math.max(34, maxCellByWidth));
+        } else if (this.cols <= 16) {
+          return Math.min(36, Math.max(28, maxCellByWidth));
+        } else {
+          return Math.min(32, Math.max(26, maxCellByWidth));
+        }
+      }
+
+      recalculateCellSizes() {
+        const cellSize = this.getCellSize();
+        const fontSize = Math.floor(cellSize * 0.52);
+        this.boardEl.style.gridTemplateColumns = `repeat(${this.cols}, ${cellSize}px)`;
+
+        const cells = this.boardEl.children;
+        for (let i = 0; i < cells.length; i++) {
+          cells[i].style.width = `${cellSize}px`;
+          cells[i].style.height = `${cellSize}px`;
+          cells[i].style.fontSize = `${fontSize}px`;
+        }
+      }
+
+      /* 渲染棋盘 DOM */
+      renderBoard() {
+        this.boardEl.innerHTML = '';
+        const cellSize = this.getCellSize();
+        const fontSize = Math.floor(cellSize * 0.52);
+
+        this.boardEl.style.gridTemplateColumns = `repeat(${this.cols}, ${cellSize}px)`;
+
+        for (let r = 0; r < this.rows; r++) {
+          for (let c = 0; c < this.cols; c++) {
+            const cellEl = document.createElement('div');
+            cellEl.className = 'cell unrevealed';
+            cellEl.style.width = `${cellSize}px`;
+            cellEl.style.height = `${cellSize}px`;
+            cellEl.style.fontSize = `${fontSize}px`;
+            cellEl.dataset.r = r;
+            cellEl.dataset.c = c;
+
+            this.bindCellEvents(cellEl, r, c);
+            this.boardEl.appendChild(cellEl);
+          }
+        }
+      }
+
+      /* 绑定单元格各类交互事件 (点击、长按、双击连开等) */
+      bindCellEvents(cellEl, r, c) {
+        let longPressTimer = null;
+        let isLongPress = false;
+
+        // 鼠标按下表情变动反馈 (紧张好奇 😮)
+        cellEl.addEventListener('mousedown', (e) => {
+          if (this.isGameOver || this.isGameWon) return;
+          if (e.button === 0 && this.grid[r][c].state === 0 && !this.grid[r][c].revealed) {
+            this.faceBtnEl.textContent = '😮';
+          }
+        });
+
+        window.addEventListener('mouseup', () => {
+          if (!this.isGameOver && !this.isGameWon) {
+            this.faceBtnEl.textContent = '😊';
+          }
+        });
+
+        // 左键点击
+        cellEl.addEventListener('click', (e) => {
+          if (this.isGameOver || this.isGameWon) return;
+          if (isLongPress) {
+            isLongPress = false;
+            return;
+          }
+
+          if (this.mobileFlagMode) {
+            this.toggleFlag(r, c);
+          } else {
+            this.handleCellLeftClick(r, c);
+          }
+        });
+
+        // 右键插旗/问号
+        cellEl.addEventListener('contextmenu', (e) => {
+          e.preventDefault();
+          if (this.isGameOver || this.isGameWon) return;
+          this.toggleFlag(r, c);
+        });
+
+        // 双击 / 快捷展开周边 (Chord)
+        cellEl.addEventListener('dblclick', (e) => {
+          e.preventDefault();
+          if (this.isGameOver || this.isGameWon) return;
+          this.handleChord(r, c);
+        });
+
+        // 触屏长按插旗支持
+        cellEl.addEventListener('touchstart', () => {
+          if (this.isGameOver || this.isGameWon) return;
+          isLongPress = false;
+          longPressTimer = setTimeout(() => {
+            isLongPress = true;
+            this.toggleFlag(r, c);
+            if (navigator.vibrate) navigator.vibrate(35);
+          }, 400);
+        }, { passive: true });
+
+        cellEl.addEventListener('touchend', () => clearTimeout(longPressTimer));
+        cellEl.addEventListener('touchmove', () => clearTimeout(longPressTimer));
+      }
+
+      /* =======================================================================
+         核心算法升级：成熟方案保证首击必出【大片连续空白区域】(Opening Guarantee)
+         ======================================================================= */
+      generateMinesWithGuaranteedOpening(firstR, firstC) {
+        const totalCells = this.rows * this.cols;
+        // 目标展开的最小非雷格子数 (确保点击后出来经典的大片开阔区域)
+        const targetRevealed = Math.min(
+          Math.floor(totalCells * 0.22),
+          this.cols <= 9 ? 16 : 30
+        );
+
+        // 尝试生成保证高质量大片空白的棋盘 (一般在 1~3 次迭代内即命中，耗时小于 1 毫秒)
+        for (let attempt = 0; attempt < 30; attempt++) {
+          // 清空雷区
+          for (let r = 0; r < this.rows; r++) {
+            for (let c = 0; c < this.cols; c++) {
+              this.grid[r][c].mine = false;
+              this.grid[r][c].count = 0;
+            }
+          }
+
+          // 划定首击安全扩散保护区：
+          // 若总格子宽裕，设置 radius = 2 (5x5 核心区)，使得中心周围多格的计数均必为 0，
+          // 从而在首击时直接递归 flood-fill 出壮丽的大片空白区！
+          const safeRadius = (totalCells - 25 >= this.mines) ? 2 : 1;
+          const forbidden = new Set();
+          for (let dr = -safeRadius; dr <= safeRadius; dr++) {
+            for (let dc = -safeRadius; dc <= safeRadius; dc++) {
+              const nr = firstR + dr;
+              const nc = firstC + dc;
+              if (nr >= 0 && nr < this.rows && nc >= 0 && nc < this.cols) {
+                forbidden.add(`${nr},${nc}`);
+              }
+            }
+          }
+
+          // 如果棋盘尺寸较小或地雷密度极高导致安全区塞不下，则回退为保证 3x3 核心
+          if (totalCells - forbidden.size < this.mines) {
+            forbidden.clear();
+            for (let dr = -1; dr <= 1; dr++) {
+              for (let dc = -1; dc <= 1; dc++) {
+                const nr = firstR + dr;
+                const nc = firstC + dc;
+                if (nr >= 0 && nr < this.rows && nc >= 0 && nc < this.cols) {
+                  forbidden.add(`${nr},${nc}`);
+                }
+              }
+            }
+          }
+
+          // 随机布雷
+          const available = [];
+          for (let r = 0; r < this.rows; r++) {
+            for (let c = 0; c < this.cols; c++) {
+              const key = `${r},${c}`;
+              if (!forbidden.has(key)) {
+                available.push([r, c]);
+              }
+            }
+          }
+
+          // Fisher-Yates 洗牌算法
+          for (let i = available.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [available[i], available[j]] = [available[j], available[i]];
+          }
+
+          for (let i = 0; i < this.mines && i < available.length; i++) {
+            const [mr, mc] = available[i];
+            this.grid[mr][mc].mine = true;
+          }
+
+          // 计算各格周围雷数
+          for (let r = 0; r < this.rows; r++) {
+            for (let c = 0; c < this.cols; c++) {
+              if (this.grid[r][c].mine) continue;
+              let count = 0;
+              for (let dr = -1; dr <= 1; dr++) {
+                for (let dc = -1; dc <= 1; dc++) {
+                  const nr = r + dr;
+                  const nc = c + dc;
+                  if (nr >= 0 && nr < this.rows && nc >= 0 && nc < this.cols && this.grid[nr][nc].mine) {
+                    count++;
+                  }
+                }
+              }
+              this.grid[r][c].count = count;
+            }
+          }
+
+          // 预演 Flood Fill 扩散测试开局空白规模
+          let simRevealed = 0;
+          let simZeros = 0;
+          const visited = new Set();
+          const q = [[firstR, firstC]];
+          visited.add(`${firstR},${firstC}`);
+
+          while (q.length > 0) {
+            const [qr, qc] = q.shift();
+            simRevealed++;
+            if (this.grid[qr][qc].count === 0) {
+              simZeros++;
+              for (let dr = -1; dr <= 1; dr++) {
+                for (let dc = -1; dc <= 1; dc++) {
+                  const nr = qr + dr;
+                  const nc = qc + dc;
+                  if (nr >= 0 && nr < this.rows && nc >= 0 && nc < this.cols) {
+                    const key = `${nr},${nc}`;
+                    if (!visited.has(key)) {
+                      visited.add(key);
+                      q.push([nr, nc]);
+                    }
+                  }
+                }
+              }
+            }
+          }
+
+          // 若展开数量达到满意的经典大片开阔标准，或达到最大尝试次数，则完成配置
+          if ((simRevealed >= targetRevealed && simZeros >= 4) || attempt >= 29) {
+            break;
+          }
+        }
+      }
+
+      /* 处理左键点击 */
+      handleCellLeftClick(r, c) {
+        const cell = this.grid[r][c];
+
+        // 若已翻开：且周围标旗数正确，支持直接单点数字快速展开 (Smart Chord)
+        if (cell.revealed) {
+          if (cell.count > 0) {
+            this.handleChord(r, c);
+          }
+          return;
+        }
+
+        // 已插旗状态不可直接翻开
+        if (cell.state === 1) return;
+
+        // 首击初始化 (保证首击必出大片开阔地)
+        if (this.firstClick) {
+          this.firstClick = false;
+          this.generateMinesWithGuaranteedOpening(r, c);
+          this.startTimer();
+        }
+
+        // 踩雷判断
+        if (cell.mine) {
+          this.triggerGameOver(r, c);
+          return;
+        }
+
+        // 翻开格子及全域空白连环扩散
+        this.revealCell(r, c);
+        this.checkWinCondition();
+      }
+
+      /* =======================================================================
+         空白区域经典全级联扩散算法 (Flood Fill Cascade + 波纹扩展动效)
+         ======================================================================= */
+      revealCell(startR, startC) {
+        const queue = [[startR, startC]];
+        const visited = new Set();
+        visited.add(`${startR},${startC}`);
+
+        const newlyRevealed = [];
+        let audioPlayCount = 0;
+
+        while (queue.length > 0) {
+          const [r, c] = queue.shift();
+          const cell = this.grid[r][c];
+
+          // 处于插旗状态的格子不会被连锁翻开
+          if (cell.state === 1) continue;
+
+          cell.revealed = true;
+          this.revealedCount++;
+          newlyRevealed.push(cell);
+
+          // 连锁扩散核心：如果该格周围地雷数为0 (纯空白区域)
+          // 则自动向周围八个方向全力扩散！
+          if (cell.count === 0 && !cell.mine) {
+            for (let dr = -1; dr <= 1; dr++) {
+              for (let dc = -1; dc <= 1; dc++) {
+                if (dr === 0 && dc === 0) continue;
+                const nr = r + dr;
+                const nc = c + dc;
+                if (nr >= 0 && nr < this.rows && nc >= 0 && nc < this.cols) {
+                  const neighbor = this.grid[nr][nc];
+                  const key = `${nr},${nc}`;
+                  if (!neighbor.revealed && neighbor.state !== 1 && !visited.has(key)) {
+                    visited.add(key);
+                    queue.push([nr, nc]);
+                  }
+                }
+              }
+            }
+          }
+        }
+
+        // 逐一更新 UI 并加入轻微的波纹延迟，呈现赏心悦目的大片扩散动效
+        const isMassReveal = newlyRevealed.length > 1;
+        newlyRevealed.forEach((cell) => {
+          const dist = Math.hypot(cell.r - startR, cell.c - startC);
+          const delay = isMassReveal ? Math.min(dist * 18, 240) : 0;
+
+          if (delay > 0) {
+            setTimeout(() => {
+              this.updateCellUI(cell.r, cell.c);
+            }, delay);
+          } else {
+            this.updateCellUI(cell.r, cell.c);
+          }
+
+          if (audioPlayCount < 5) {
+            setTimeout(() => {
+              this.audio.playReveal(audioPlayCount);
+            }, delay * 0.6);
+            audioPlayCount++;
+          }
+        });
+      }
+
+      /* 双击 / 快速展开周边 (Chord 操作) */
+      handleChord(r, c) {
+        const cell = this.grid[r][c];
+        if (!cell.revealed || cell.count === 0) return;
+
+        // 计算周围已插旗数与未翻开邻居
+        let flaggedNeighbors = 0;
+        const hiddenNeighbors = [];
+
+        for (let dr = -1; dr <= 1; dr++) {
+          for (let dc = -1; dc <= 1; dc++) {
+            if (dr === 0 && dc === 0) continue;
+            const nr = r + dr;
+            const nc = c + dc;
+            if (nr >= 0 && nr < this.rows && nc >= 0 && nc < this.cols) {
+              const n = this.grid[nr][nc];
+              if (n.state === 1) flaggedNeighbors++;
+              if (!n.revealed && n.state !== 1) {
+                hiddenNeighbors.push(n);
+              }
+            }
+          }
+        }
+
+        // 当旗帜数与该数字相符：瞬间自动翻开所有其余邻居！
+        if (flaggedNeighbors === cell.count) {
+          let hitMine = false;
+          let explodedPos = null;
+
+          for (const n of hiddenNeighbors) {
+            if (n.mine) {
+              hitMine = true;
+              explodedPos = [n.r, n.c];
+            } else {
+              this.revealCell(n.r, n.c);
+            }
+          }
+
+          if (hitMine) {
+            this.triggerGameOver(explodedPos[0], explodedPos[1]);
+          } else {
+            this.checkWinCondition();
+          }
+        } else {
+          // 未满足条件时轻微高亮反馈
+          hiddenNeighbors.forEach(n => {
+            const el = this.getCellEl(n.r, n.c);
+            if (el) {
+              el.classList.add('chord-highlight');
+              setTimeout(() => el.classList.remove('chord-highlight'), 130);
+            }
+          });
+        }
+      }
+
+      /* 切换插旗 / 问号状态 (0 -> 1 -> 2 -> 0) */
+      toggleFlag(r, c) {
+        const cell = this.grid[r][c];
+        if (cell.revealed) return;
+
+        if (cell.state === 0) {
+          cell.state = 1;
+          this.flagCount++;
+          this.audio.playFlag();
+        } else if (cell.state === 1) {
+          cell.state = 2;
+          this.flagCount--;
+          this.audio.playUnflag();
+        } else {
+          cell.state = 0;
+        }
+
+        this.updateCellUI(r, c);
+        this.updateDashboard();
+      }
+
+      /* 刷新单个单元格 DOM */
+      updateCellUI(r, c) {
+        const cell = this.grid[r][c];
+        const el = this.getCellEl(r, c);
+        if (!el) return;
+
+        if (cell.revealed) {
+          el.className = 'cell revealed';
+          if (cell.mine) {
+            el.classList.add('mine-revealed');
+            el.textContent = '💣';
+          } else if (cell.count > 0) {
+            el.dataset.num = cell.count;
+            el.textContent = cell.count;
+          } else {
+            // 空白格子 (0雷周边)
+            el.classList.add('empty-blank');
+            el.textContent = '';
+          }
+        } else {
+          el.className = 'cell unrevealed';
+          if (cell.state === 1) {
+            el.classList.add('flagged');
+            el.textContent = '🚩';
+          } else if (cell.state === 2) {
+            el.classList.add('question');
+            el.textContent = '❓';
+          } else {
+            el.textContent = '';
+          }
+        }
+      }
+
+      getCellEl(r, c) {
+        return this.boardEl.children[r * this.cols + c];
+      }
+
+      /* 游戏失败处理 */
+      triggerGameOver(explodedR, explodedC) {
+        this.isGameOver = true;
+        this.stopTimer();
+        this.faceBtnEl.textContent = '😵';
+        this.gameCardEl.classList.add('shake');
+        this.audio.playExplode();
+
+        // 翻开所有真实地雷并标出错旗
+        for (let r = 0; r < this.rows; r++) {
+          for (let c = 0; c < this.cols; c++) {
+            const cell = this.grid[r][c];
+            const el = this.getCellEl(r, c);
+
+            if (r === explodedR && c === explodedC) {
+              el.className = 'cell revealed exploded';
+              el.textContent = '💥';
+            } else if (cell.mine && cell.state !== 1) {
+              el.className = 'cell revealed mine-revealed';
+              el.textContent = '💣';
+            } else if (!cell.mine && cell.state === 1) {
+              el.className = 'cell revealed wrong-flag';
+              el.textContent = '❌';
+            }
+          }
+        }
+      }
+
+      /* 判定游戏胜利 */
+      checkWinCondition() {
+        const totalSafeCells = this.rows * this.cols - this.mines;
+        if (this.revealedCount === totalSafeCells) {
+          this.triggerWin();
+        }
+      }
+
+      /* 游戏胜利处理 */
+      triggerWin() {
+        this.isGameWon = true;
+        this.stopTimer();
+        this.faceBtnEl.textContent = '😎';
+        this.audio.playWin();
+        this.confetti.fire();
+
+        // 自动把所有地雷标记上旗帜
+        for (let r = 0; r < this.rows; r++) {
+          for (let c = 0; c < this.cols; c++) {
+            const cell = this.grid[r][c];
+            if (cell.mine && cell.state !== 1) {
+              cell.state = 1;
+              this.updateCellUI(r, c);
+            }
+          }
+        }
+        this.flagCount = this.mines;
+        this.updateDashboard();
+
+        // 保存最佳纪录
+        let isNewRecord = false;
+        if (this.difficulty !== 'custom') {
+          isNewRecord = this.saveBestScore(this.difficulty, this.timer);
+        }
+
+        // 弹出胜利统计面板
+        setTimeout(() => {
+          document.getElementById('winTimeVal').textContent = `${this.timer}s`;
+          const best = localStorage.getItem(`minesweeper_best_${this.difficulty}`);
+          document.getElementById('winBestVal').textContent = best ? `${best}s` : `${this.timer}s`;
+          document.getElementById('winModal').classList.add('active');
+        }, 350);
+      }
+
+      /* 纪录本地存取 */
+      saveBestScore(diff, time) {
+        const key = `minesweeper_best_${diff}`;
+        const currentBest = localStorage.getItem(key);
+        if (!currentBest || time < parseInt(currentBest)) {
+          localStorage.setItem(key, time);
+          this.updateBestScoreDisplay();
+          return true;
+        }
+        return false;
+      }
+
+      updateBestScoreDisplay() {
+        if (this.difficulty === 'custom') {
+          this.bestTimeEl.textContent = '--';
+          return;
+        }
+        const key = `minesweeper_best_${this.difficulty}`;
+        const best = localStorage.getItem(key);
+        this.bestTimeEl.textContent = best ? `${best} 秒` : '--';
+      }
+    }
+
+    // 页面就绪启动游戏
+    window.addEventListener('DOMContentLoaded', () => {
+      window.game = new Minesweeper();
+    });
+  </script>
+</body>
+</html>
