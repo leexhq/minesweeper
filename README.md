@@ -1,7 +1,7 @@
 # 精致扫雷 | Minesweeper Modern & Classic
 
 <p align="center">
-  <img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="License: MIT">
+  <img src="https://img.shields.io/badge/License-GPL--3.0--or--later%20OR%20AGPL--3.0--or--later-blue.svg" alt="License: GPL-3.0-or-later OR AGPL-3.0-or-later">
   <img src="https://img.shields.io/badge/HTML5-Pure_Frontend-orange.svg" alt="Pure Frontend">
   <img src="https://img.shields.io/badge/Dependencies-Zero-green.svg" alt="Zero Dependencies">
   <img src="https://img.shields.io/badge/Audio-Web_Audio_API-purple.svg" alt="Web Audio API">
@@ -132,4 +132,4 @@ No build tools, npm, or servers required:
 
 ### 📄 License
 
-This project is licensed under the [MIT License](LICENSE) - feel free to use, modify, and distribute!
+This project is available under your choice of [GPL-3.0-or-later or AGPL-3.0-or-later](LICENSE). A separate proprietary commercial license may be negotiated with the copyright holder. Previously published MIT-licensed copies retain their MIT rights.
